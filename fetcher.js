@@ -1,10 +1,5 @@
-/**
- * wrtieFile(localPath, urlContent) function takes in the local path and url provided by user and writes the content from given url to local path
- * @param {String} localPath - destination path to write to
- * @param {String} urlContent - content retrieved from url
- */
-
 //Modules
+const writeFile = require('./writeFile');
 const needle = require('needle');
 const fs = require('node:fs');
 const readline = require('node:readline');
@@ -23,28 +18,6 @@ if (userInput.length !== 2) {
 
 const urlPath = userInput[0];
 const localPath = userInput[1];
-
-const writeFile = (localPath, urlContent) => {
-
-  fs.writeFile(localPath, urlContent, (err) => {
-    //Edge Case 2: Invalid localPath
-    if (err) {
-      console.log(`(ERR) Permission Denied: ${err.path} is an invalid path, \n${err.code}, \n${err.errno}`);
-      process.exit(0);
-    } else {
-      console.log('\nFile Successfully Written!');
-      fs.stat(localPath, (err, stats) => {
-        if (err) {
-          console.log(err);
-        } else {
-          console.log(`Downloaded and saved ${stats.size} bytes to ${localPath}`);
-        }
-      });
-    }
-  });
-
-};
-
 
 // Send request and get response from url
 // Write urlContent to localPath
