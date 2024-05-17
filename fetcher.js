@@ -1,8 +1,8 @@
 //Modules
 const writeFile = require('./writeFile');
 const needle = require('needle');
-const fs = require('node:fs');
-const readline = require('node:readline');
+const fsPromises = require('fs').promises;
+const readline = require('readline');
 const { stdin: input, stdout: output } = require('node:process');
 const rl = readline.createInterface({ input, output });
 
@@ -10,46 +10,46 @@ const rl = readline.createInterface({ input, output });
 //Input takes: URL and local path
 const userInput = process.argv.slice(2);
 
-//Edge Case 1: input is greater or lesser than 2 arguments
+//Edge Case: input is greater or lesser than 2 arguments
 if (userInput.length !== 2) {
-  console.log("Requires 2 arguments");
+  console.log("ERROR: Requires 2 arguments");
   process.exit(0);
 }
 
 const urlPath = userInput[0];
 const localPath = userInput[1];
 
-// Send request and get response from url
-// Write urlContent to localPath
-needle.get(urlPath, (error, response, body) => {
-  let urlContent = '';
+needle.get(urlPath, (err, resp, body) => {
+  let urlContent;
 
-  //Edge Case 3: Invalid urlPath
-  if (error) {
-    console.log(`(ERR) Permission Denied: ${error.hostname} is an invalid path, \n${error.code}, \n${error.errno}`);
+  if (err) {
+    console.log(`(ERR) Permission Denied: ${err.hostname} is an invalid path`);
     process.exit(0);
   }
-  console.log('statusCode:', response && response.statusCode);
-  urlContent += body;
 
-  //fs.stat provides details about specific file path (such as whether a file exists or not)
-  //writeFile creates a file in specified directory if it does not exist. Otherwise prompts user whether to overwrite existing file or not
-  fs.stat(localPath, (err) => {
-    if (err) {
+  urlContent = body;
+
+  fsPromises.readFile(localPath, 'utf-8')
+    .then(() => {
+      //Edge Case: file already exists
+      console.log('Successfully Read File');
+      rl.question(
+        `You are trying to write to ${localPath} but it already exists.\nType 'Y' then Press 'Enter' to overwrite contents of ${localPath}\n`,
+        (answer) => {
+          if (answer === 'Y' || answer === 'y') {
+            console.log(`Writing file to ${localPath}`);
+            writeFile(localPath, urlContent);
+          } else {
+            console.log("User has chosen not to overwrite file");
+            process.exit(0);
+          }
+          rl.close();
+        });
+    })
+    .catch((err) => {
+      //Edge Case: file doesn't exist so create file
+      console.log(`Writing file to ${localPath}`);
       writeFile(localPath, urlContent);
       rl.close();
-    } else {
-      //Edge 4: local Path already exists -> Prompt user
-      rl.question(`You are trying to write to ${localPath} but it already exists.\nType 'Y' then Press 'Enter' to overwrite contents of ${localPath}\n`, (answer) => {
-
-        if (answer === 'Y' || answer === 'y') {
-          writeFile(localPath, urlContent);
-        } else {
-          console.log("User has chosen not to overwrite file");
-          process.exit(0);
-        }
-        rl.close();
-      });
-    }
-  });
+    });
 });
