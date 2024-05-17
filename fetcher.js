@@ -4,9 +4,9 @@ const needle = require('needle');
 const fsPromises = require('fs').promises;
 const readline = require('readline-promise');
 const defaultReadline = readline.default;
-const rl = defaultReadline.createInterface({ 
-    input: process.stdin, 
-    output: process.stdout
+const rl = defaultReadline.createInterface({
+  input: process.stdin,
+  output: process.stdout
 });
 
 
@@ -40,15 +40,15 @@ needle.get(urlPath, (err, resp, body) => {
       rl.questionAsync(
         `You are trying to write to ${localPath} but it already exists.\nType 'Y' then Press 'Enter' to overwrite contents of ${localPath}\n`)
         .then((answer) => {
-            if (answer === 'Y' || answer === 'y') {
-                console.log(`Writing file to ${localPath}`);
-                writeFile(localPath, urlContent);
-                } else {
-                console.log("User has chosen not to overwrite file");
-                process.exit(0);
-                }
-                rl.close();
-        })
+          if (answer === 'Y' || answer === 'y') {
+            console.log(`Writing file to ${localPath}`);
+            writeFile(localPath, urlContent);
+          } else {
+            console.log("User has chosen not to overwrite file");
+            process.exit(0);
+          }
+          rl.close();
+        });
     })
     .catch((err) => {
       //Edge Case: file doesn't exist so create file
