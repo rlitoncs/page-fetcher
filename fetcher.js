@@ -2,9 +2,12 @@
 const writeFile = require('./writeFile');
 const needle = require('needle');
 const fsPromises = require('fs').promises;
-const readline = require('readline');
-const { stdin: input, stdout: output } = require('node:process');
-const rl = readline.createInterface({ input, output });
+const readline = require('readline-promise');
+const defaultReadline = readline.default;
+const rl = defaultReadline.createInterface({ 
+    input: process.stdin, 
+    output: process.stdout
+});
 
 
 //Input takes: URL and local path
@@ -23,6 +26,7 @@ needle.get(urlPath, (err, resp, body) => {
   let urlContent;
 
   if (err) {
+    //Edge Case: urlPath does not exist
     console.log(`(ERR) Permission Denied: ${err.hostname} is an invalid path`);
     process.exit(0);
   }
@@ -33,18 +37,18 @@ needle.get(urlPath, (err, resp, body) => {
     .then(() => {
       //Edge Case: file already exists
       console.log('Successfully Read File');
-      rl.question(
-        `You are trying to write to ${localPath} but it already exists.\nType 'Y' then Press 'Enter' to overwrite contents of ${localPath}\n`,
-        (answer) => {
-          if (answer === 'Y' || answer === 'y') {
-            console.log(`Writing file to ${localPath}`);
-            writeFile(localPath, urlContent);
-          } else {
-            console.log("User has chosen not to overwrite file");
-            process.exit(0);
-          }
-          rl.close();
-        });
+      rl.questionAsync(
+        `You are trying to write to ${localPath} but it already exists.\nType 'Y' then Press 'Enter' to overwrite contents of ${localPath}\n`)
+        .then((answer) => {
+            if (answer === 'Y' || answer === 'y') {
+                console.log(`Writing file to ${localPath}`);
+                writeFile(localPath, urlContent);
+                } else {
+                console.log("User has chosen not to overwrite file");
+                process.exit(0);
+                }
+                rl.close();
+        })
     })
     .catch((err) => {
       //Edge Case: file doesn't exist so create file

@@ -24,6 +24,7 @@ const writeFile = (localPath, urlContent) => {
     .catch((err) => {
       //Edge Case: Invalid local path
       console.log(`(ERR) Permission Denied: ${err.path} is an invalid path`);
+      process.exit(0);
     });
 };
 
